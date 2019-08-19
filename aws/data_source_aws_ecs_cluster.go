@@ -44,6 +44,7 @@ func dataSourceAwsEcsCluster() *schema.Resource {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
+			"tags": tagsSchemaComputed(),
 		},
 	}
 }
@@ -53,6 +54,7 @@ func dataSourceAwsEcsClusterRead(d *schema.ResourceData, meta interface{}) error
 
 	params := &ecs.DescribeClustersInput{
 		Clusters: []*string{aws.String(d.Get("cluster_name").(string))},
+		Include: []*string{aws.String("TAGS")},
 	}
 	log.Printf("[DEBUG] Reading ECS Cluster: %s", params)
 	desc, err := conn.DescribeClusters(params)
@@ -76,6 +78,7 @@ func dataSourceAwsEcsClusterRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("pending_tasks_count", cluster.PendingTasksCount)
 	d.Set("running_tasks_count", cluster.RunningTasksCount)
 	d.Set("registered_container_instances_count", cluster.RegisteredContainerInstancesCount)
+	d.Set("tags", tagsToMapECS(cluster.Tags))
 
 	return nil
 }
